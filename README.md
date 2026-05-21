@@ -1,9 +1,10 @@
 # AnimaEngine
 
 AnimaEngine is a C99 sprite extraction and preview toolchain for Nintendo DS
-Pokemon Black and White battle graphics. It reads the Pokegra archive
-(`/a/0/0/4`), decodes Nitro graphics formats, reconstructs multi-part battle
-sprites, and exports PNG previews, animated idle GIFs, idle break GIFs,
+Pokemon Black, White, Black 2, and White 2 battle graphics. It works with the
+original Gen V games and their sequels by reading the Pokegra archive
+(`/a/0/0/4`), decoding Nitro graphics formats, reconstructing multi-part battle
+sprites, and exporting PNG previews, animated idle GIFs, idle break GIFs,
 composed idle-to-break GIFs, and reconstruction JSON.
 
 No ROMs, save files, extracted Pokemon assets, or Nintendo copyrighted data are
@@ -85,8 +86,9 @@ make clean  # removes local binaries and object files
 ./AnimaEngineGUI
 ```
 
-Load a Pokemon Black or White `.nds` ROM, choose a species, select the preview
-asset, and export the current preview, the species DS files, or all assets.
+Load a Pokemon Black, White, Black 2, or White 2 `.nds` ROM, choose a species,
+select the preview asset, and export the current preview, the species DS files,
+or all assets.
 
 ## CLI Usage
 
@@ -94,6 +96,8 @@ Full export mode writes to a canonical species folder below the output root:
 
 ```bash
 ./AnimaEngine PokemonWhite.nds 7 out --gif-side both --gif-palette normal --gif-break --gif-composed
+# Sequels are supported too:
+./AnimaEngine PokemonBlack2.nds 7 out --gif-side both --gif-palette normal --gif-break --gif-composed
 ```
 
 That command writes Squirtle assets under:

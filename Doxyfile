@@ -3,7 +3,7 @@
 # Project information
 PROJECT_NAME           = "AnimaEngine"
 PROJECT_NUMBER         = "1.0.0"
-PROJECT_BRIEF          = "Nintendo DS Pokemon Black/White Sprite & Asset Extraction Studio"
+PROJECT_BRIEF          = "Nintendo DS Pokemon Black/White and Black 2/White 2 Sprite & Asset Extraction Studio"
 OUTPUT_DIRECTORY       = docs
 
 # Language & optimization
