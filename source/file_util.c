@@ -6,6 +6,18 @@
 #include <ftw.h>
 #include <sys/stat.h>
 #include <sys/types.h>
+#if defined(_WIN32)
+    #include <direct.h>
+#endif
+
+static int File_MkdirOne(const char *path)
+{
+#if defined(_WIN32)
+    return _mkdir(path);
+#else
+    return mkdir(path, 0775);
+#endif
+}
 
 int File_ReadAll(const char *path, u8 **out_data, size_t *out_size)
 {
@@ -107,7 +119,7 @@ int File_MkdirRecursive(const char *path)
         if (*p == '/') {
             *p = '\0';
 
-            if (mkdir(tmp, 0775) != 0 && errno != EEXIST) {
+            if (File_MkdirOne(tmp) != 0 && errno != EEXIST) {
                 perror(tmp);
                 return -1;
             }
@@ -116,7 +128,7 @@ int File_MkdirRecursive(const char *path)
         }
     }
 
-    if (mkdir(tmp, 0775) != 0 && errno != EEXIST) {
+    if (File_MkdirOne(tmp) != 0 && errno != EEXIST) {
         perror(tmp);
         return -1;
     }

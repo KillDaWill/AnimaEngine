@@ -88,7 +88,10 @@ copy_macos_runtime_libs() {
                 [[ "$dep" == /usr/lib/* || "$dep" == /System/* ]] && continue
                 if [[ -f "$dep" ]]; then
                     base="$(basename "$dep")"
-                    cp -L "$dep" "$stage/lib/$base"
+                    if [[ ! -f "$stage/lib/$base" ]]; then
+                        cp -L "$dep" "$stage/lib/$base"
+                        chmod u+w "$stage/lib/$base" || true
+                    fi
                     install_name_tool -change "$dep" "@executable_path/lib/$base" "$bin" || true
                 fi
             done
