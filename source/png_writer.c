@@ -1,13 +1,17 @@
 #include "png_writer.h"
 
 /*
- * This workspace has a stale /usr/local/include/setjmp.h ahead of glibc's
- * header in GCC's default search path. Include glibc's header explicitly and
- * mark the stale guard so libpng does not pick the wrong one indirectly.
+ * Some Linux workspaces can have a stale /usr/local/include/setjmp.h ahead of
+ * glibc's header in GCC's default search path. On Linux, include glibc's
+ * header explicitly; on macOS/Windows, use the platform header normally.
  */
-#include "/usr/include/setjmp.h"
-#ifndef _SETJMP_H_
-#define _SETJMP_H_
+#if defined(__linux__)
+    #include "/usr/include/setjmp.h"
+    #ifndef _SETJMP_H_
+        #define _SETJMP_H_
+    #endif
+#else
+    #include <setjmp.h>
 #endif
 
 #include <png.h>
