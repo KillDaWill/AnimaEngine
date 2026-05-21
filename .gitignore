@@ -1,0 +1,44 @@
+# Build outputs
+/build/
+/AnimaEngine
+/AnimaEngine.exe
+/AnimaEngineGUI
+/AnimaEngineGUI.exe
+*.o
+*.d
+
+# Release/package outputs
+/release/
+*.zip
+*.tar.gz
+*.7z
+
+# Generated exports and local smoke-test output
+/out/
+/out_*/
+*.gif
+*.ppm
+
+# Generated documentation
+/docs/html/
+/docs/latex/
+/docs/doxygen-warnings.log
+
+# ROMs, saves, and copyrighted game data must never be committed.
+*.nds
+*.gba
+*.gb
+*.gbc
+*.3ds
+*.cia
+*.sav
+*.dsv
+*.srm
+
+# Local/editor/system files
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+.vscode/
+.idea/

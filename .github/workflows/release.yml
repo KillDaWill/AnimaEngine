@@ -1,0 +1,126 @@
+name: Release Packages
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+env:
+  RAYLIB_VERSION: "5.5"
+
+jobs:
+  build:
+    name: Build ${{ matrix.platform }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-22.04
+            platform: linux-x86_64
+          - os: windows-2022
+            platform: windows-x86_64
+          - os: macos-13
+            platform: macos-x86_64
+          - os: macos-14
+            platform: macos-arm64
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Linux dependencies
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            build-essential cmake git pkg-config zip \
+            libpng-dev libgl1-mesa-dev libx11-dev libxcursor-dev \
+            libxinerama-dev libxrandr-dev libxi-dev libasound2-dev
+
+      - name: Build raylib for Linux
+        if: runner.os == 'Linux'
+        run: |
+          git clone --depth 1 --branch "$RAYLIB_VERSION" https://github.com/raysan5/raylib.git /tmp/raylib
+          cmake -S /tmp/raylib -B /tmp/raylib-build \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DBUILD_SHARED_LIBS=ON \
+            -DCMAKE_INSTALL_PREFIX=/tmp/raylib-install
+          cmake --build /tmp/raylib-build --target install --config Release --parallel 2
+
+      - name: Build Linux package
+        if: runner.os == 'Linux'
+        env:
+          PKG_CONFIG_PATH: /tmp/raylib-install/lib/pkgconfig:/tmp/raylib-install/lib64/pkgconfig
+        run: |
+          make
+          make gui
+          scripts/package_release.sh "${{ matrix.platform }}" "${GITHUB_REF_NAME:-dev}"
+
+      - name: Configure MSYS2
+        if: runner.os == 'Windows'
+        uses: msys2/setup-msys2@v2
+        with:
+          msystem: UCRT64
+          update: true
+          install: >-
+            make
+            zip
+            mingw-w64-ucrt-x86_64-gcc
+            mingw-w64-ucrt-x86_64-pkgconf
+            mingw-w64-ucrt-x86_64-libpng
+            mingw-w64-ucrt-x86_64-raylib
+
+      - name: Build Windows package
+        if: runner.os == 'Windows'
+        shell: msys2 {0}
+        run: |
+          make
+          make gui
+          scripts/package_release.sh "${{ matrix.platform }}" "${GITHUB_REF_NAME:-dev}"
+
+      - name: Install macOS dependencies
+        if: runner.os == 'macOS'
+        run: |
+          brew update
+          brew install pkg-config libpng raylib
+
+      - name: Build macOS package
+        if: runner.os == 'macOS'
+        run: |
+          make
+          make gui
+          scripts/package_release.sh "${{ matrix.platform }}" "${GITHUB_REF_NAME:-dev}"
+
+      - name: Upload package artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: AnimaEngine-${{ matrix.platform }}
+          path: |
+            release/*.zip
+            release/*.tar.gz
+          if-no-files-found: error
+
+  github-release:
+    name: Publish GitHub Release
+    if: startsWith(github.ref, 'refs/tags/')
+    needs: build
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Download packages
+        uses: actions/download-artifact@v4
+        with:
+          path: release-artifacts
+          merge-multiple: true
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" release-artifacts/* \
+            --title "AnimaEngine ${GITHUB_REF_NAME}" \
+            --generate-notes
