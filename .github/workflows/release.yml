@@ -48,7 +48,8 @@ jobs:
           git clone --depth 1 --branch "$RAYLIB_VERSION" https://github.com/raysan5/raylib.git /tmp/raylib
           cmake -S /tmp/raylib -B /tmp/raylib-build \
             -DCMAKE_BUILD_TYPE=Release \
-            -DBUILD_SHARED_LIBS=ON \
+            -DBUILD_SHARED_LIBS=OFF \
+            -DBUILD_EXAMPLES=OFF \
             -DCMAKE_INSTALL_PREFIX=/tmp/raylib-install
           cmake --build /tmp/raylib-build --target install --config Release --parallel 2
 
@@ -57,8 +58,8 @@ jobs:
         env:
           PKG_CONFIG_PATH: /tmp/raylib-install/lib/pkgconfig:/tmp/raylib-install/lib64/pkgconfig
         run: |
-          make
-          make gui
+          make PKG_CONFIG="pkg-config --static"
+          make gui PKG_CONFIG="pkg-config --static"
           scripts/package_release.sh "${{ matrix.platform }}" "${GITHUB_REF_NAME:-dev}"
 
       - name: Configure MSYS2

@@ -1,9 +1,10 @@
 CC := gcc
-CFLAGS := -Wall -Wextra -Wno-format-truncation -std=c99 -g -Iinclude $(shell pkg-config --cflags libpng)
+PKG_CONFIG ?= pkg-config
+CFLAGS := -Wall -Wextra -Wno-format-truncation -std=c99 -g -Iinclude $(shell $(PKG_CONFIG) --cflags libpng)
 DEPFLAGS := -MMD -MP
-LDLIBS := $(shell pkg-config --libs libpng) -lm
-RAYLIB_CFLAGS := $(shell pkg-config --cflags raylib)
-RAYLIB_LDLIBS := $(shell pkg-config --libs raylib)
+LDLIBS := $(shell $(PKG_CONFIG) --libs libpng) -lm
+RAYLIB_CFLAGS := $(shell $(PKG_CONFIG) --cflags raylib)
+RAYLIB_LDLIBS := $(shell $(PKG_CONFIG) --libs raylib)
 
 BUILD_DIR := build
 TARGET := AnimaEngine
