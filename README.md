@@ -119,14 +119,6 @@ Run the built-in help for all options:
 ./AnimaEngine --help
 ```
 
-## Release Builds
-
-The workflow in `.github/workflows/release.yml` builds Linux, Windows, and
-macOS packages and attaches them to a GitHub Release when a tag like `v1.0.0` is
-pushed.
-
-See [docs/RELEASE.md](docs/RELEASE.md) for the release checklist.
-
 ## Documentation
 
 API documentation is generated with:
