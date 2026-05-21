@@ -18,7 +18,6 @@ The GitHub release workflow builds packages for:
 
 - Linux x86_64
 - Windows x86_64
-- macOS x86_64
 - macOS arm64
 
 Packages include `AnimaEngineGUI` and `AnimaEngine` plus bundled runtime
