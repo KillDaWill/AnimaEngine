@@ -20,9 +20,7 @@
 *.ppm
 
 # Generated documentation
-/docs/html/
-/docs/latex/
-/docs/doxygen-warnings.log
+/docs/build/
 
 # ROMs, saves, and copyrighted game data must never be committed.
 *.nds
