@@ -1,11 +1,31 @@
+/**
+ * @file gui_view_browser.c
+ * @brief Implementations of main GUI browser screen rendering layout.
+ */
+
 #include "gui_view_browser.h"
 #include "gui_widgets.h"
 #include <math.h>
 
 #define GR_WHITE ((GrColor){255,255,255,255})
 
+/**
+ * @brief Constructs a GrColor value.
+ * @param r Red channel.
+ * @param g Green channel.
+ * @param b Blue channel.
+ * @param a Alpha channel.
+ * @return Constructed GrColor struct.
+ */
 static GrColor Gc(unsigned char r, unsigned char g, unsigned char b, unsigned char a) { GrColor c; c.r=r;c.g=g;c.b=b;c.a=a; return c; }
 
+/**
+ * @brief Draws a single species index row inside the list selection panel.
+ * @param row Layout bounds.
+ * @param entry Target species entry information.
+ * @param selected True if active row is currently selected.
+ * @param hovered True if active row is currently hovered by cursor.
+ */
 static void DrawPokemonRow(GrRect row, const PokemonCatalogEntry *entry, int selected, int hovered)
 {
     GrColor fill = selected ? Gc(124,58,237,100) : hovered ? Gc(30,41,59,120) : Gc(0,0,0,0);
@@ -16,6 +36,11 @@ static void DrawPokemonRow(GrRect row, const PokemonCatalogEntry *entry, int sel
     if (selected) Gr_DrawRect((GrRect){row.x, row.y, 4, row.height}, Gc(6,182,212,255));
 }
 
+/**
+ * @brief Renders the visual drawing canvas representing the loaded animation loop or sheet.
+ * @param bounds Visual frame box layout.
+ * @param preview GUI preview loader context state.
+ */
 static void DrawPreviewPanel(GrRect bounds, GuiPreview *preview)
 {
     Gr_DrawRectRounded(bounds, 0.04f, Gc(30,41,59,150));
@@ -49,6 +74,12 @@ static void DrawPreviewPanel(GrRect bounds, GuiPreview *preview)
     Gr_DrawTexture(&preview->texture, src, dst, GR_WHITE);
 }
 
+/**
+ * @brief Renders the delay and framerate control options for GIF and timeline animators.
+ * @param state GUI state context.
+ * @param bounds Layout bounds.
+ * @param enabled True if interactive modifications are permitted.
+ */
 static void DrawGifSpeedControl(GuiState *state, GrRect bounds, int enabled)
 {
     int delay_cs = GuiState_GifDelayCs(state);
@@ -80,6 +111,11 @@ static void DrawGifSpeedControl(GuiState *state, GrRect bounds, int enabled)
     }
 }
 
+/**
+ * @brief Checks if a preview mode utilizes dynamic playback speed delay adjustments.
+ * @param mode Active preview mode.
+ * @return 1 if rate-adjustable; 0 otherwise.
+ */
 static int PreviewModeUsesGifSpeed(GuiPreviewMode mode)
 {
     return mode == PREVIEW_GIF ||

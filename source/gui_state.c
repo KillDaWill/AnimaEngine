@@ -1,3 +1,8 @@
+/**
+ * @file gui_state.c
+ * @brief Implementations of GUI application state handlers.
+ */
+
 #include "gui_state.h"
 #include "file_util.h"
 #include "gif_writer.h"
@@ -89,6 +94,12 @@ void GuiState_SanitizePath(const char *name, char *out, size_t out_size)
     out[j] = '\0';
 }
 
+/**
+ * @brief Sanitizes species name for building camel-cased display output path strings.
+ * @param name Source string.
+ * @param out Output buffer.
+ * @param out_size Size of output buffer.
+ */
 static void GuiState_SanitizeDisplayPath(const char *name, char *out, size_t out_size)
 {
     size_t i, j;
@@ -113,6 +124,12 @@ void GuiState_BuildOutputDir(const PokemonCatalogEntry *entry, char *buf, size_t
     snprintf(buf, sz, "%s/pokedex%03d_%s", GUI_OUTPUT_ROOT, entry->dex_id, slug);
 }
 
+/**
+ * @brief Checks if a string contains another string case-insensitively.
+ * @param hay String to search in.
+ * @param needle Substring to search for.
+ * @return 1 if found; 0 if not found.
+ */
 static int StrContainsInsensitive(const char *hay, const char *needle)
 {
     size_t hl, nl, i, j;
@@ -129,6 +146,7 @@ static int StrContainsInsensitive(const char *hay, const char *needle)
     }
     return 0;
 }
+
 
 int GuiState_EntryMatchesQuery(const PokemonCatalogEntry *entry, const char *query)
 {
@@ -211,6 +229,11 @@ const char *GuiState_GetFormName(const GuiState *state, int dex_id, int form_idx
     return "Normal";
 }
 
+/**
+ * @brief Constructs option query filters matching current UI selected states.
+ * @param state GUI state context.
+ * @param opts Destination options.
+ */
 static void GuiState_BuildPreviewOptions(GuiState *state, AnimaPreviewOptions *opts)
 {
     memset(opts, 0, sizeof(*opts));
@@ -223,6 +246,11 @@ static void GuiState_BuildPreviewOptions(GuiState *state, AnimaPreviewOptions *o
     opts->gif_delay_cs = GuiState_GifDelayCs(state);
 }
 
+/**
+ * @brief Gets the currently selected preview asset info descriptor.
+ * @param state GUI state.
+ * @return Asset info pointer, or NULL if invalid or none loaded.
+ */
 static const AnimaPreviewAssetInfo *GuiState_CurrentAsset(const GuiState *state)
 {
     if (state == NULL || state->asset_count <= 0 ||
@@ -346,6 +374,10 @@ void GuiState_UnloadPreview(GuiPreview *p)
     memset(p, 0, sizeof(*p));
 }
 
+/**
+ * @brief Computes a tight bounding box encapsulating all non-transparent pixels in the preview animation frames.
+ * @param p Target preview.
+ */
 static void GuiState_SetPreviewContentBounds(GuiPreview *p)
 {
     int min_x;
@@ -397,6 +429,12 @@ static void GuiState_SetPreviewContentBounds(GuiPreview *p)
     p->content_height = max_y - min_y + 1;
 }
 
+/**
+ * @brief Loads the default idle animation preview frames from the backend.
+ * @param state GUI state context.
+ * @param entry Target Pokemon entry.
+ * @return 0 on success; negative on failure.
+ */
 static int LoadPreviewFromBackend(GuiState *state, const PokemonCatalogEntry *entry)
 {
     AnimaIdlePreview idle_preview;
@@ -430,6 +468,13 @@ static int LoadPreviewFromBackend(GuiState *state, const PokemonCatalogEntry *en
     return 0;
 }
 
+/**
+ * @brief Helper for wrapping static single-frame PNG preview loaders.
+ * @param state GUI state context.
+ * @param entry Pokemon catalog entry.
+ * @param backend_func Specific backend load routine.
+ * @return 0 on success; negative on failure.
+ */
 static int LoadPngPreview(GuiState *state, const PokemonCatalogEntry *entry, int backend_func(GuiState*,const PokemonCatalogEntry*,AnimaIdlePreview*))
 {
     AnimaIdlePreview preview;
@@ -456,6 +501,13 @@ static int LoadPngPreview(GuiState *state, const PokemonCatalogEntry *entry, int
     return 0;
 }
 
+/**
+ * @brief Helper for wrapping multi-frame animated preview loaders.
+ * @param state GUI state context.
+ * @param entry Pokemon catalog entry.
+ * @param backend_func Specific backend load routine.
+ * @return 0 on success; negative on failure.
+ */
 static int LoadAnimatedPreview(GuiState *state, const PokemonCatalogEntry *entry, int backend_func(GuiState*,const PokemonCatalogEntry*,AnimaIdlePreview*))
 {
     AnimaIdlePreview preview;
@@ -483,21 +535,52 @@ static int LoadAnimatedPreview(GuiState *state, const PokemonCatalogEntry *entry
     return 0;
 }
 
+/**
+ * @brief Direct callback for loading spritesheet asset frames.
+ * @param state GUI state.
+ * @param entry Pokemon entry.
+ * @param out Output preview structure.
+ * @return 0 on success; negative on failure.
+ */
 static int LoadSpritesheet(GuiState *state, const PokemonCatalogEntry *entry, AnimaIdlePreview *out)
 {
     AnimaPreviewOptions opts; GuiState_BuildPreviewOptions(state, &opts);
     return AnimaBackend_LoadSpritesheetPreviewExt(state->rom_path, entry->dex_id, &opts, out);
 }
+
+/**
+ * @brief Direct callback for loading static idle preview frame.
+ * @param state GUI state.
+ * @param entry Pokemon entry.
+ * @param out Output preview structure.
+ * @return 0 on success; negative on failure.
+ */
 static int LoadStaticIdle(GuiState *state, const PokemonCatalogEntry *entry, AnimaIdlePreview *out)
 {
     AnimaPreviewOptions opts; GuiState_BuildPreviewOptions(state, &opts);
     return AnimaBackend_LoadIdlePreviewExt(state->rom_path, entry->dex_id, &opts, out);
 }
+
+/**
+ * @brief Direct callback for loading idle break preview frame loop.
+ * @param state GUI state.
+ * @param entry Pokemon entry.
+ * @param out Output preview structure.
+ * @return 0 on success; negative on failure.
+ */
 static int LoadBreak(GuiState *state, const PokemonCatalogEntry *entry, AnimaIdlePreview *out)
 {
     AnimaPreviewOptions opts; GuiState_BuildPreviewOptions(state, &opts);
     return AnimaBackend_LoadIdleBreakPreviewExt(state->rom_path, entry->dex_id, &opts, out);
 }
+
+/**
+ * @brief Direct callback for loading composed animation frame loop.
+ * @param state GUI state.
+ * @param entry Pokemon entry.
+ * @param out Output preview structure.
+ * @return 0 on success; negative on failure.
+ */
 static int LoadComposed(GuiState *state, const PokemonCatalogEntry *entry, AnimaIdlePreview *out)
 {
     AnimaPreviewOptions opts;
@@ -509,6 +592,14 @@ static int LoadComposed(GuiState *state, const PokemonCatalogEntry *entry, Anima
     }
     return AnimaBackend_LoadComposedPreviewExt(state->rom_path, entry->dex_id, -1, &opts, out);
 }
+
+/**
+ * @brief Direct callback for loading NMAR timeline-driven animation.
+ * @param state GUI state.
+ * @param entry Pokemon entry.
+ * @param out Output preview structure.
+ * @return 0 on success; negative on failure.
+ */
 static int LoadNmarAnimation(GuiState *state, const PokemonCatalogEntry *entry, AnimaIdlePreview *out)
 {
     AnimaPreviewOptions opts;
@@ -518,6 +609,14 @@ static int LoadNmarAnimation(GuiState *state, const PokemonCatalogEntry *entry, 
     opts.animation_index = asset->animation_index;
     return AnimaBackend_LoadNmarAnimationPreviewExt(state->rom_path, entry->dex_id, asset->animation_index, &opts, out);
 }
+
+/**
+ * @brief Direct callback for loading NMCR layout map composition.
+ * @param state GUI state.
+ * @param entry Pokemon entry.
+ * @param out Output preview structure.
+ * @return 0 on success; negative on failure.
+ */
 static int LoadNmcrMap(GuiState *state, const PokemonCatalogEntry *entry, AnimaIdlePreview *out)
 {
     AnimaPreviewOptions opts;
@@ -688,6 +787,12 @@ void GuiState_ExportAllAssets(GuiState *state, const PokemonCatalogEntry *entry)
     GuiState_SetStatus(state, status);
 }
 
+/**
+ * @brief Exports currently loaded preview frame buffer directly to a custom GIF file.
+ * @param state GUI state context.
+ * @param out_path Destination file path.
+ * @return 0 on success; negative on failure.
+ */
 static int GuiState_ExportLoadedPreviewGif(const GuiState *state, const char *out_path)
 {
     const GuiPreview *preview;

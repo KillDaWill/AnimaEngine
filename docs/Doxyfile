@@ -12,7 +12,7 @@ MARKDOWN_SUPPORT       = YES
 AUTOLINK_SUPPORT       = YES
 
 # Input settings
-INPUT                  = include source README.md THIRD_PARTY_NOTICES.md
+INPUT                  = include source README.md THIRD_PARTY_NOTICES.md CHANGELOG.md
 FILE_PATTERNS          = *.c *.h *.md
 RECURSIVE              = YES
 EXCLUDE                = build/ docs/build/ release/ out/

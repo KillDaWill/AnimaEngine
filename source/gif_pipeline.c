@@ -1,3 +1,8 @@
+/**
+ * @file gif_pipeline.c
+ * @brief Implementations of animation GIF processing pipelines.
+ */
+
 #include "gif_pipeline.h"
 #include "file_util.h"
 #include "gif_writer.h"
@@ -25,6 +30,11 @@ void GifExportOptions_Init(GifExportOptions *options)
     options->nmar_animation_index = -1;
 }
 
+/**
+ * @brief Resolves default directory path naming categorization based on animation type.
+ * @param animation_name Category identifier ("idle", "break").
+ * @return Read-only directory folder name string.
+ */
 static const char *GifDirectoryForAnimation(const char *animation_name)
 {
     if (animation_name != NULL && strcmp(animation_name, "idle") == 0) {
@@ -36,6 +46,11 @@ static const char *GifDirectoryForAnimation(const char *animation_name)
     return GIF_DIR_OTHER;
 }
 
+/**
+ * @brief Resolves fallback delay duration constraints.
+ * @param options Target export configurations.
+ * @return Duration length in centiseconds.
+ */
 static int ResolveGifPlaybackDelayCs(const GifExportOptions *options)
 {
     if (options == NULL) return 5;
@@ -43,6 +58,13 @@ static int ResolveGifPlaybackDelayCs(const GifExportOptions *options)
     return options->delay_cs;
 }
 
+/**
+ * @brief Selects active layout map index.
+ * @param options Export configurations.
+ * @param default_idle_map Base idle index.
+ * @param map_count Total maps available.
+ * @return Resolved map index.
+ */
 static int ResolveGifMapIndex(
     const GifExportOptions *options,
     int default_idle_map,
@@ -60,6 +82,13 @@ static int ResolveGifMapIndex(
     return map_index;
 }
 
+/**
+ * @brief Resolves timeline index associated with specified track label.
+ * @param options Export configurations.
+ * @param nmar Track list details.
+ * @param animation_name Track label string.
+ * @return Resolved timeline index, or negative on failure.
+ */
 static int ResolveNmarTimelineIndex(
     const GifExportOptions *options,
     const NmarFile *nmar,
@@ -87,6 +116,13 @@ static int ResolveNmarTimelineIndex(
     return 0;
 }
 
+/**
+ * @brief Computes amount of frames to generate for an NMAR sequence.
+ * @param nmar Timeline details.
+ * @param animation_index Animation sequence index.
+ * @param delay_cs Frame duration.
+ * @return Resolved total frame count.
+ */
 static int NmarFrameCountForGif(
     const NmarFile *nmar,
     int animation_index,
@@ -106,6 +142,11 @@ static int NmarFrameCountForGif(
     return frame_count;
 }
 
+/**
+ * @brief Converts timeline track frame parameters to standard spatial coordinate transforms.
+ * @param frame Source timeline keyframe attributes.
+ * @param out_transform Target destination container.
+ */
 static void ComposerTransform_FromNmarFrame(
     const NmarFrame *frame,
     ComposerTransform *out_transform
@@ -128,6 +169,22 @@ static void ComposerTransform_FromNmarFrame(
     out_transform->translate_y = frame->translate_y;
 }
 
+/**
+ * @brief Calculates bounding coordinates across a timeline range of NMAR animation tracks.
+ * @param ncer Cells metadata.
+ * @param nanr Keyframes mapping.
+ * @param nmcr Multi-cell layouts.
+ * @param nmar Multi-animation track details.
+ * @param animation_index Target sequence track.
+ * @param start_frame Beginning index.
+ * @param frame_count Amount of frames to scan.
+ * @param out_min_x Output minimum X bound.
+ * @param out_min_y Output minimum Y bound.
+ * @param out_max_x Output maximum X bound.
+ * @param out_max_y Output maximum Y bound.
+ * @param coords Coordinates anchors.
+ * @param delay_cs Frame duration delay.
+ */
 static void ComputeNmarBoundsRange(
     const NcerFile *ncer,
     const NanrFile *nanr,

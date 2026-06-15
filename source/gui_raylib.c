@@ -1,3 +1,8 @@
+/**
+ * @file gui_raylib.c
+ * @brief Implementations of the platform-independent renderer using Raylib.
+ */
+
 #include "gui_platform.h"
 #include "raylib.h"
 #include <stdio.h>

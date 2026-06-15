@@ -1,3 +1,8 @@
+/**
+ * @file gif_writer.c
+ * @brief Implementations of custom LZW animated GIF writing utilities.
+ */
+
 #include "gif_writer.h"
 
 #define GIF_COMPAT_MIN_FAST_DELAY_CS 5
@@ -10,12 +15,23 @@ typedef struct GifBitWriter {
     int bit_count;
 } GifBitWriter;
 
+/**
+ * @brief Writes a 16-bit unsigned integer in little-endian format to a file stream.
+ * @param f Target file stream.
+ * @param value Integer value to write.
+ */
 static void WriteU16(FILE *f, int value)
 {
     fputc(value & 0xFF, f);
     fputc((value >> 8) & 0xFF, f);
 }
 
+/**
+ * @brief Resolves compatible delay timing constraints to prevent browser lag.
+ * @param requested_delay_cs Target requested delay duration.
+ * @param out_frame_step Pointer to resolved frame step multiplier.
+ * @param out_delay_cs Pointer to output resolved delay duration.
+ */
 static void ResolveCompatibleTiming(
     int requested_delay_cs,
     int *out_frame_step,
@@ -40,6 +56,11 @@ static void ResolveCompatibleTiming(
     if (out_delay_cs != NULL) *out_delay_cs = delay_cs;
 }
 
+/**
+ * @brief Computes power-of-two color table size matching number of palette colors.
+ * @param color_count Quantity of colors.
+ * @return Resolved size of color table.
+ */
 static int ColorTableSize(int color_count)
 {
     int size;
@@ -52,6 +73,11 @@ static int ColorTableSize(int color_count)
     return size;
 }
 
+/**
+ * @brief Computes bits of precision needed to index a color table size.
+ * @param table_size Color table size.
+ * @return Number of bits.
+ */
 static int BitsForColorTable(int table_size)
 {
     int bits;
@@ -71,6 +97,11 @@ static int BitsForColorTable(int table_size)
     return bits;
 }
 
+/**
+ * @brief Flushes accumulated byte block buffer of the LZW stream to disk.
+ * @param writer Bit writer context.
+ * @return 0 on success; negative on failure.
+ */
 static int GifBitWriter_FlushBlock(GifBitWriter *writer)
 {
     if (writer->block_len <= 0) {
@@ -87,6 +118,12 @@ static int GifBitWriter_FlushBlock(GifBitWriter *writer)
     return 0;
 }
 
+/**
+ * @brief Adds a single byte to the output stream block.
+ * @param writer Bit writer context.
+ * @param value Byte value.
+ * @return 0 on success; negative on write failure.
+ */
 static int GifBitWriter_WriteByte(GifBitWriter *writer, u8 value)
 {
     writer->block[writer->block_len++] = value;
@@ -98,6 +135,13 @@ static int GifBitWriter_WriteByte(GifBitWriter *writer, u8 value)
     return 0;
 }
 
+/**
+ * @brief Writes an LZW code of variable bit length.
+ * @param writer Bit writer context.
+ * @param code LZW code value.
+ * @param code_size Bit size of the code.
+ * @return 0 on success; negative on failure.
+ */
 static int GifBitWriter_WriteCode(
     GifBitWriter *writer,
     int code,
@@ -119,6 +163,11 @@ static int GifBitWriter_WriteCode(
     return 0;
 }
 
+/**
+ * @brief Flushes remaining bits and terminates image block.
+ * @param writer Bit writer context.
+ * @return 0 on success; negative on failure.
+ */
 static int GifBitWriter_Finish(GifBitWriter *writer)
 {
     if (writer->bit_count > 0) {
@@ -138,6 +187,16 @@ static int GifBitWriter_Finish(GifBitWriter *writer)
     return 0;
 }
 
+/**
+ * @brief Emits LZW literal code stream from pixel index frame data.
+ * @param f Output file stream.
+ * @param frame Source indexed pixel frame.
+ * @param width Source frame width.
+ * @param height Source frame height.
+ * @param scale Scaling factor.
+ * @param min_code_size Minimum LZW code size.
+ * @return 0 on success; negative on failure.
+ */
 static int WriteLzwLiteralImageData(
     FILE *f,
     const u8 *frame,

@@ -1,3 +1,8 @@
+/**
+ * @file coords.c
+ * @brief Implementations of Pokemon coordinate mapping functions.
+ */
+
 #include "coords.h"
 #include "file_util.h"
 #include "nitro_util.h"

@@ -1,3 +1,8 @@
+/**
+ * @file sprite_composer.c
+ * @brief Implementations of NDS OAM, NCER cell, and NANR animation compositor and affine renderer.
+ */
+
 #include "sprite_composer.h"
 #include "coords.h"
 #include <math.h>
@@ -9,6 +14,11 @@
 #define MAX_GLOBAL_OAMS 2048
 #define COMPOSITE_MARGIN 8
 
+/**
+ * @brief Converts a NANR fixed-point scale factor to double precision.
+ * @param scale Fixed-point scale factor.
+ * @return Double precision scale factor.
+ */
 static double NanrScaleToDouble(int scale)
 {
     if (scale == 0) {
@@ -18,6 +28,11 @@ static double NanrScaleToDouble(int scale)
     return (double)scale / (double)NANR_SCALE_ONE;
 }
 
+/**
+ * @brief Applies parent affine transform context variables to a global OAM sprite definition.
+ * @param goam Target global OAM struct.
+ * @param parent_transform Parent transform context to inherit.
+ */
 static void Composer_SetParentTransform(
     GlobalOam *goam,
     const ComposerTransform *parent_transform
@@ -43,6 +58,14 @@ static void Composer_SetParentTransform(
     goam->parent_translate_y = parent_transform->translate_y;
 }
 
+/**
+ * @brief Transforms a local point using the parent layout's scale, rotation, and translation.
+ * @param goam OAM instance parameters containing parent transform attributes.
+ * @param child_x X-coordinate in child space.
+ * @param child_y Y-coordinate in child space.
+ * @param out_x Pointer to destination transformed X world coordinate.
+ * @param out_y Pointer to destination transformed Y world coordinate.
+ */
 static void ParentTransformPoint(
     const GlobalOam *goam,
     double child_x,
@@ -71,6 +94,14 @@ static void ParentTransformPoint(
     *out_y = (double)goam->parent_translate_y + scaled_x * sin_a + scaled_y * cos_a;
 }
 
+/**
+ * @brief Inverts a world coordinate to its corresponding local coordinate relative to the parent transform.
+ * @param goam OAM instance parameters.
+ * @param world_x World X coordinate.
+ * @param world_y World Y coordinate.
+ * @param out_child_x Pointer to child X-coordinate.
+ * @param out_child_y Pointer to child Y-coordinate.
+ */
 static void ParentInverseTransformPoint(
     const GlobalOam *goam,
     double world_x,
@@ -99,15 +130,28 @@ static void ParentInverseTransformPoint(
     *out_child_y = (-dx * sin_a + dy * cos_a) / scale_y;
 }
 
+/**
+ * @brief Rounds a double precision float value to the nearest integer.
+ * @param value Float value.
+ * @return Rounded integer.
+ */
 static int RoundDoubleToInt(double value)
 {
     if (value >= 0.0) {
         return (int)floor(value + 0.5);
     }
 
-    return (int)ceil(value - 0.5);
+    return (int)floor(value - 0.5);
 }
 
+/**
+ * @brief Transforms a local OAM source coordinate to screen/world space by applying local and parent transformations.
+ * @param goam OAM instance parameters.
+ * @param local_x Local coordinate relative to OAM corner.
+ * @param local_y Local coordinate relative to OAM corner.
+ * @param out_x Destination world X coord.
+ * @param out_y Destination world Y coord.
+ */
 static void GlobalOamTransformPoint(
     const GlobalOam *goam,
     double local_x,
@@ -141,6 +185,14 @@ static void GlobalOamTransformPoint(
     ParentTransformPoint(goam, child_x, child_y, out_x, out_y);
 }
 
+/**
+ * @brief Inverse-transforms a screen/world coordinate back to local OAM texture space.
+ * @param goam OAM instance parameters.
+ * @param world_x World X coordinate.
+ * @param world_y World Y coordinate.
+ * @param out_local_x Destination local texture X coordinate.
+ * @param out_local_y Destination local texture Y coordinate.
+ */
 static void GlobalOamInverseTransformPoint(
     const GlobalOam *goam,
     double world_x,
@@ -177,6 +229,14 @@ static void GlobalOamInverseTransformPoint(
     *out_local_y = unrotated_y / scale_y;
 }
 
+/**
+ * @brief Computes bounds of a global OAM by transforming all four corners into world space.
+ * @param goam OAM instance.
+ * @param out_min_x Output minimum X world coordinate.
+ * @param out_min_y Output minimum Y world coordinate.
+ * @param out_max_x Output maximum X world coordinate.
+ * @param out_max_y Output maximum Y world coordinate.
+ */
 static void GlobalOamTransformedBounds(
     const GlobalOam *goam,
     double *out_min_x,
@@ -225,6 +285,15 @@ static void GlobalOamTransformedBounds(
     *out_max_y = max_y;
 }
 
+/**
+ * @brief Applies coordinate offset constraints specific to type-3 cells.
+ * @param record Layout map record.
+ * @param frame Active anim timeline frame.
+ * @param cell Active sprite cell metadata.
+ * @param coords Coordinate catalog data.
+ * @param translate_x Pointer to X translation accumulator.
+ * @param translate_y Pointer to Y translation accumulator.
+ */
 static void ApplyType3CoordOffset(
     const NmcrRecord *record,
     const NanrFrame *frame,
@@ -249,6 +318,19 @@ static void ApplyType3CoordOffset(
      * intentionally inert unless a verified species proves a narrower need. */
 }
 
+/**
+ * @brief Constructs the list of global OAM definitions representing a specific frame.
+ * @param ncer NCER cell resource.
+ * @param nanr NANR animation resource.
+ * @param map NMCR mapping layout.
+ * @param tick Active timeline animation tick.
+ * @param label Optional debug print prefix.
+ * @param global_oams Destination global OAM array.
+ * @param max_global_oams Max capacity of OAM array.
+ * @param coords Coordinate file database.
+ * @param parent_transform Optional parent transform attributes.
+ * @return Resolved count of global OAM components created.
+ */
 static int BuildGlobalOamsForFrame(
     const NcerFile *ncer,
     const NanrFile *nanr,
@@ -337,6 +419,11 @@ static int BuildGlobalOamsForFrame(
     return global_oam_count;
 }
 
+/**
+ * @brief Sorts global OAM sprites by priority (depth layering) and original definition index.
+ * @param global_oams Array of global OAM definitions.
+ * @param global_oam_count Array length.
+ */
 static void SortGlobalOams(GlobalOam *global_oams, int global_oam_count)
 {
     int i;
@@ -361,6 +448,16 @@ static void SortGlobalOams(GlobalOam *global_oams, int global_oam_count)
     }
 }
 
+/**
+ * @brief Samples a single pixel from the NCGR tile image for a given OAM layout.
+ * @param image NCGR source tile sheet image.
+ * @param palette NCLR source color palette.
+ * @param goam Active OAM layout properties.
+ * @param src_x Target pixel coordinate X relative to OAM.
+ * @param src_y Target pixel coordinate Y relative to OAM.
+ * @param tile_stride Stride width of NCGR in tiles.
+ * @return Palette color index, or negative if transparent or out of bounds.
+ */
 static int SampleGlobalOamColorIndex(
     const NcgrImage *image,
     const NclrPalette *palette,
@@ -425,6 +522,18 @@ static int SampleGlobalOamColorIndex(
     return final_color_index;
 }
 
+/**
+ * @brief Blits a transformed OAM to an RGBA destination canvas.
+ * @param image NCGR tile data.
+ * @param palette NCLR palette data.
+ * @param canvas Destination buffer of RGBA pixels.
+ * @param canvas_width Canvas width in pixels.
+ * @param canvas_height Canvas height in pixels.
+ * @param world_origin_x World space origin offset X.
+ * @param world_origin_y World space origin offset Y.
+ * @param goam Source transformed OAM context.
+ * @param tile_stride NCGR stride width in tiles.
+ */
 static void BlitGlobalOamToRgbaCanvas(
     const NcgrImage *image,
     const NclrPalette *palette,
@@ -495,6 +604,18 @@ static void BlitGlobalOamToRgbaCanvas(
     }
 }
 
+/**
+ * @brief Blits a transformed OAM to an indexed 8-bit destination palette index canvas.
+ * @param image NCGR tile data.
+ * @param palette NCLR palette data.
+ * @param canvas Destination index buffer.
+ * @param canvas_width Canvas width.
+ * @param canvas_height Canvas height.
+ * @param world_origin_x World space origin X.
+ * @param world_origin_y World space origin Y.
+ * @param goam Source transformed OAM context.
+ * @param tile_stride NCGR stride width in tiles.
+ */
 static void BlitGlobalOamToIndexedCanvas(
     const NcgrImage *image,
     const NclrPalette *palette,
@@ -564,6 +685,7 @@ static void BlitGlobalOamToIndexedCanvas(
         }
     }
 }
+
 
 void Composer_ClearPixels(RgbaColor *pixels, int width, int height)
 {

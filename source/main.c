@@ -1,3 +1,8 @@
+/**
+ * @file main.c
+ * @brief Command line tool executable entry point for AnimaEngine asset exports.
+ */
+
 #include "anima_backend.h"
 #include "common.h"
 #include "pokemon_catalog.h"
@@ -7,6 +12,10 @@
 #include <stdlib.h>
 #include <string.h>
 
+/**
+ * @brief Prints command-line argument help usage overview.
+ * @param program Name of the active program executable.
+ */
 static void PrintHelp(const char *program)
 {
     printf("========================================================================\n");
@@ -54,6 +63,12 @@ static void PrintHelp(const char *program)
     printf("========================================================================\n");
 }
 
+/**
+ * @brief Parses text input into a non-negative integer.
+ * @param text Source text.
+ * @param out_value Destination integer pointer.
+ * @return 0 on success; negative on format mismatch or range error.
+ */
 static int ParseNonNegativeInt(const char *text, int *out_value)
 {
     char *end;
@@ -72,6 +87,12 @@ static int ParseNonNegativeInt(const char *text, int *out_value)
     return 0;
 }
 
+/**
+ * @brief Parses text input into a positive integer.
+ * @param text Source text.
+ * @param out_value Destination integer pointer.
+ * @return 0 on success; negative on mismatch.
+ */
 static int ParsePositiveInt(const char *text, int *out_value)
 {
     if (ParseNonNegativeInt(text, out_value) != 0 || *out_value <= 0) {
@@ -81,6 +102,12 @@ static int ParsePositiveInt(const char *text, int *out_value)
     return 0;
 }
 
+/**
+ * @brief Sanitizes output directory name strings to ensure alphanumeric and underscore format.
+ * @param name Source string.
+ * @param out Output buffer.
+ * @param out_size Size of output buffer.
+ */
 static void SanitizeOutputName(const char *name, char *out, size_t out_size)
 {
     size_t i;
@@ -113,6 +140,13 @@ static void SanitizeOutputName(const char *name, char *out, size_t out_size)
     out[j] = '\0';
 }
 
+/**
+ * @brief Constructs the canonical species folder path matching output parameters.
+ * @param species Dex ID of species.
+ * @param out_root Parent root path.
+ * @param out_dir Output folder buffer.
+ * @param out_dir_size Output folder buffer size.
+ */
 static void BuildCanonicalOutputDir(int species, const char *out_root, char *out_dir, size_t out_dir_size)
 {
     const PokemonCatalogEntry *entry;
