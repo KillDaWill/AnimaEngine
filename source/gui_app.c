@@ -1,3 +1,8 @@
+/**
+ * @file gui_app.c
+ * @brief Implementations of high-level GUI application run loop entry.
+ */
+
 #include "gui_app.h"
 #include "gui_platform.h"
 #include "gui_state.h"

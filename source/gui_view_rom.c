@@ -1,3 +1,8 @@
+/**
+ * @file gui_view_rom.c
+ * @brief Implementations of the ROM browser file explorer GUI layout views.
+ */
+
 #include "gui_view_rom.h"
 #include "gui_widgets.h"
 #include <stdlib.h>
@@ -33,6 +38,14 @@ static int explorer_initialized = 0;
 static float last_click_time = 0.0f;
 static int last_clicked_row = -1;
 
+/**
+ * @brief Constructs a GrColor value.
+ * @param r Red channel.
+ * @param g Green channel.
+ * @param b Blue channel.
+ * @param a Alpha channel.
+ * @return Constructed GrColor struct.
+ */
 static GrColor Gc(unsigned char r, unsigned char g, unsigned char b, unsigned char a) {
     GrColor c;
     c.r = r;
@@ -42,6 +55,12 @@ static GrColor Gc(unsigned char r, unsigned char g, unsigned char b, unsigned ch
     return c;
 }
 
+/**
+ * @brief Sorting comparator function for ExplorerEntry list items.
+ * @param a LHS element.
+ * @param b RHS element.
+ * @return Relative ordering value.
+ */
 static int CompareExplorerEntries(const void *a, const void *b)
 {
     const ExplorerEntry *ea = (const ExplorerEntry *)a;
@@ -69,6 +88,10 @@ static int CompareExplorerEntries(const void *a, const void *b)
     return tolower((unsigned char)*sa) - tolower((unsigned char)*sb);
 }
 
+/**
+ * @brief Reloads explorer cache of directories and files matching path.
+ * @param path Target directory path.
+ */
 static void RefreshExplorerDir(const char *path)
 {
     GrFilePathList files = Gr_LoadDirectoryFiles(path);
@@ -116,6 +139,12 @@ static void RefreshExplorerDir(const char *path)
     }
 }
 
+/**
+ * @brief Helper for case-insensitive substring matching in explorer filtering.
+ * @param haystack Target string.
+ * @param needle Substring pattern.
+ * @return 1 if found; 0 if mismatch.
+ */
 static int CaseInsensitiveContains(const char *haystack, const char *needle)
 {
     if (!needle || !*needle) return 1;
@@ -138,6 +167,9 @@ static int CaseInsensitiveContains(const char *haystack, const char *needle)
     return 0;
 }
 
+/**
+ * @brief Navigates the current file explorer path up to its parent folder.
+ */
 static void ExplorerGoUp(void)
 {
     if (strcmp(current_dir, SYSTEM_ROOT) == 0 || strcmp(current_dir, "/") == 0) return;
@@ -161,6 +193,10 @@ static void ExplorerGoUp(void)
     explorer_scroll = 0;
 }
 
+/**
+ * @brief Navigates the current file explorer path down into a subfolder.
+ * @param subdir Target directory name.
+ */
 static void ExplorerNavigateTo(const char *subdir)
 {
     char temp[4096];

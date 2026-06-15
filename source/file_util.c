@@ -1,3 +1,8 @@
+/**
+ * @file file_util.c
+ * @brief Implementations of filesystem utility functions.
+ */
+
 #define _XOPEN_SOURCE 500
 
 #include "file_util.h"
@@ -10,6 +15,11 @@
     #include <direct.h>
 #endif
 
+/**
+ * @brief Creates a single directory.
+ * @param path Directory path.
+ * @return 0 on success; non-zero on failure.
+ */
 static int File_MkdirOne(const char *path)
 {
 #if defined(_WIN32)
@@ -18,6 +28,7 @@ static int File_MkdirOne(const char *path)
     return mkdir(path, 0775);
 #endif
 }
+
 
 int File_ReadAll(const char *path, u8 **out_data, size_t *out_size)
 {
@@ -136,6 +147,14 @@ int File_MkdirRecursive(const char *path)
     return 0;
 }
 
+/**
+ * @brief Callback function used by nftw to remove individual files and directories.
+ * @param path System path.
+ * @param st File stat pointer (unused).
+ * @param type_flag File type flags (unused).
+ * @param ftw_buffer FTW struct details (unused).
+ * @return 0 on success; non-zero on failure.
+ */
 static int File_RemoveRecursiveCallback(
     const char *path,
     const struct stat *st,

@@ -1,8 +1,21 @@
+/**
+ * @file gui_widgets.c
+ * @brief Implementations of modular, state-retaining GUI drawing widgets.
+ */
+
 #include "gui_widgets.h"
 #include <string.h>
 
 #define GR_WHITE ((GrColor){255,255,255,255})
 
+/**
+ * @brief Constructs a GrColor value.
+ * @param r Red channel.
+ * @param g Green channel.
+ * @param b Blue channel.
+ * @param a Alpha channel.
+ * @return Constructed GrColor struct.
+ */
 static GrColor Gc(unsigned char r, unsigned char g, unsigned char b, unsigned char a) { GrColor c; c.r=r;c.g=g;c.b=b;c.a=a; return c; }
 
 int Gr_DrawButton(GrRect bounds, const char *label, int enabled)
