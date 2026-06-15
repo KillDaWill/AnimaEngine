@@ -1,0 +1,83 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  linux-build:
+    name: Linux build & test
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Linux dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            build-essential cmake git pkg-config \
+            libpng-dev libgl1-mesa-dev libx11-dev libxcursor-dev \
+            libxinerama-dev libxrandr-dev libxi-dev libasound2-dev
+
+      - name: Build raylib
+        run: |
+          git clone --depth 1 --branch "5.5" https://github.com/raysan5/raylib.git /tmp/raylib
+          cmake -S /tmp/raylib -B /tmp/raylib-build \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DBUILD_SHARED_LIBS=OFF \
+            -DBUILD_EXAMPLES=OFF \
+            -DCMAKE_INSTALL_PREFIX=/tmp/raylib-install
+          cmake --build /tmp/raylib-build --target install --config Release --parallel 2
+
+      - name: Build CLI
+        env:
+          PKG_CONFIG_PATH: /tmp/raylib-install/lib/pkgconfig:/tmp/raylib-install/lib64/pkgconfig
+        run: |
+          make PKG_CONFIG="pkg-config --static"
+
+      - name: Build GUI
+        env:
+          PKG_CONFIG_PATH: /tmp/raylib-install/lib/pkgconfig:/tmp/raylib-install/lib64/pkgconfig
+        run: |
+          make gui PKG_CONFIG="pkg-config --static"
+
+      - name: Run unit tests
+        env:
+          PKG_CONFIG_PATH: /tmp/raylib-install/lib/pkgconfig:/tmp/raylib-install/lib64/pkgconfig
+        run: |
+          make test PKG_CONFIG="pkg-config --static"
+
+  windows-build:
+    name: Windows build
+    runs-on: windows-2022
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure MSYS2
+        uses: msys2/setup-msys2@v2
+        with:
+          msystem: UCRT64
+          update: true
+          install: >-
+            make
+            mingw-w64-ucrt-x86_64-gcc
+            mingw-w64-ucrt-x86_64-pkgconf
+            mingw-w64-ucrt-x86_64-libpng
+            mingw-w64-ucrt-x86_64-raylib
+
+      - name: Build CLI and GUI
+        shell: msys2 {0}
+        run: |
+          make
+          make gui
+
+      - name: Run unit tests
+        shell: msys2 {0}
+        run: make test

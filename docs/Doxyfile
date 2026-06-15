@@ -3,8 +3,8 @@
 # Project information
 PROJECT_NAME           = "AnimaEngine"
 PROJECT_NUMBER         = "1.0.0"
-PROJECT_BRIEF          = "Nintendo DS Pokemon Black/White and Black 2/White 2 Sprite & Asset Extraction Studio"
-OUTPUT_DIRECTORY       = docs
+PROJECT_BRIEF          = "Nintendo DS Pokemon Black, White, Black 2, and White 2 sprite extraction and preview toolchain"
+OUTPUT_DIRECTORY       = docs/build
 
 # Language & optimization
 OPTIMIZE_OUTPUT_FOR_C  = YES
@@ -12,10 +12,10 @@ MARKDOWN_SUPPORT       = YES
 AUTOLINK_SUPPORT       = YES
 
 # Input settings
-INPUT                  = include source README.md THIRD_PARTY_NOTICES.md docs
+INPUT                  = include source README.md THIRD_PARTY_NOTICES.md
 FILE_PATTERNS          = *.c *.h *.md
 RECURSIVE              = YES
-EXCLUDE                = build/ docs/html/ release/ out/
+EXCLUDE                = build/ docs/build/ release/ out/
 
 # Extraction settings
 EXTRACT_ALL            = YES
@@ -29,7 +29,7 @@ WARNINGS               = YES
 WARN_IF_UNDOCUMENTED   = YES
 WARN_IF_DOC_ERROR      = YES
 WARN_NO_PARAMDOC       = YES
-WARN_LOGFILE           = docs/doxygen-warnings.log
+WARN_LOGFILE           = docs/build/doxygen-warnings.log
 
 # Output generation
 GENERATE_HTML          = YES

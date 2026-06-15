@@ -26,6 +26,8 @@ jobs:
             platform: windows-x86_64
           - os: macos-14
             platform: macos-arm64
+          - os: macos-14
+            platform: macos-x86_64
 
     steps:
       - name: Checkout
@@ -88,8 +90,17 @@ jobs:
           brew update
           brew install pkg-config libpng raylib
 
-      - name: Build macOS package
-        if: runner.os == 'macOS'
+      - name: Build macOS x86_64 package
+        if: matrix.platform == 'macos-x86_64'
+        env:
+          MACOS_ARCH_FLAGS: -arch x86_64 -mmacosx-version-min=10.13
+        run: |
+          make CFLAGS="-Wall -Wextra -Wno-format-truncation -std=c99 -g -Iinclude $(pkg-config --cflags libpng) ${MACOS_ARCH_FLAGS}"
+          make gui CFLAGS="-Wall -Wextra -Wno-format-truncation -std=c99 -g -Iinclude $(pkg-config --cflags libpng) ${MACOS_ARCH_FLAGS}"
+          scripts/package_release.sh "${{ matrix.platform }}" "${GITHUB_REF_NAME:-dev}"
+
+      - name: Build macOS arm64 package
+        if: matrix.platform == 'macos-arm64'
         run: |
           make
           make gui

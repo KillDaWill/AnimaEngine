@@ -1,3 +1,17 @@
+/*
+ * Pokemon name catalog.
+ *
+ * The strings in this file are the names of the first 649 species (the
+ * national dex used by Pokemon Black, White, Black 2, and White 2). They are
+ * trademarks of Nintendo, Game Freak, and Creatures Inc. and are reproduced
+ * here only so the GUI and CLI can label data that the user has already
+ * extracted from a legally dumped ROM they own. No game data, sprites, ROM
+ * bytes, or other copyrighted Nintendo / Game Freak / Creatures Inc. content
+ * is included.
+ *
+ * If you fork or distribute this project, do not claim the names as your own
+ * and do not use them in a way that suggests endorsement by Nintendo.
+ */
 #include "pokemon_catalog.h"
 
 static const PokemonCatalogEntry g_pokemon_catalog[] = {
